@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #333;
+            color: #fff;
+        }
+        h2 {
+            text-align: center;
+        }
+        .search-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px;
+        }
+        .search-container select,
+        .search-container input,
+        .search-container button {
+            margin: 0 5px;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+        }
+        .search-container input,
+        .search-container select {
+            flex: 1;
+        }
+        .search-container button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        .search-container button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #444;
+        }
+        th, td {
+            border: 1px solid #555;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #666;
+        }
+        td .actions {
+            display: flex;
+            justify-content: space-around;
+        }
+        td .actions button {
+            background: none;
+            border: none;
+            color: #4CAF50;
+            cursor: pointer;
+        }
+        td .actions button.edit:hover {
+            color: #ff0;
+        }
+        td .actions button.delete:hover {
+            color: #f00;
+        }
+        #editCustomerForm {
+            display: none;
+            background-color: #444;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 400px;
+            margin: 20px auto;
+        }
+        #editCustomerForm input,
+        #editCustomerForm button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 4px;
+        }
+        #editCustomerForm button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        #editCustomerForm button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+<h2>Customer List</h2>
+
+<!-- Search Form -->
+<div class="search-container">
+    <button onclick="window.location.href='add-customerss.html'">Add Customer</button> <!-- Link to the add-customer page -->
+    <input type="text" id="searchInput" placeholder="Search value">
+    <select id="searchField">
+        <option value="firstname">First Name</option>
+        <option value="city">City</option>
+        <option value="email">Email</option>
+        <option value="phone">Phone</option>
+    </select>
+    <select id="sortOrder">
+        <option value="customerId">Customer ID</option>
+        <option value="firstname">First Name</option>
+        <option value="city">City</option>
+        <option value="email">Email</option>
+        <option value="phone">Phone</option>
+    </select>
+    <select id="sortDirection">
+        <option value="asc">Ascending</option>
+        <option value="desc">Descending</option>
+    </select>
+    <button onclick="fetchCustomers()">Search</button>
+</div>
+
+<button onclick="logout()">Logout</button>
+
+<table>
+    <thead>
+    <tr>
+        <th>CustomerId</th>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Street</th>
+        <th>Address</th>
+        <th>City</th>
+        <th>State</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody id="customerTableBody">
+    </tbody>
+</table>
+
+<!-- Edit form -->
+<div id="editCustomerForm">
+    <h2>Edit Customer</h2>
+    <form id="customerEditForm">
+        <input type="hidden" id="editCustomerId">
+        <label for="editStreet">Street:</label><br>
+        <input type="text" id="editStreet" required><br>
+        <label for="editAddress">Address:</label><br>
+        <input type="text" id="editAddress" required><br>
+        <label for="editCity">City:</label><br>
+        <input type="text" id="editCity" required><br>
+        <label for="editState">State:</label><br>
+        <input type="text" id="editState" required><br>
+        <label for="editEmail">Email:</label><br>
+        <input type="email" id="editEmail" required><br>
+        <label for="editPhone">Phone:</label><br>
+        <input type="tel" id="editPhone" required><br>
+        <button type="submit">Update Customer</button>
+    </form>
+</div>
+
+<script>
+    async function fetchCustomers() {
+        const searchInput = document.getElementById('searchInput').value;
+        const searchField = document.getElementById('searchField').value;
+        const sortOrder = document.getElementById('sortOrder').value;
+        const sortDirection = document.getElementById('sortDirection').value;
+        const token = localStorage.getItem('token');
+
+        const response = await fetch(`/customer/getCustomers?search=${searchInput}&field=${searchField}&sort=${sortOrder}&direction=${sortDirection}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            const tableBody = document.getElementById('customerTableBody');
+            tableBody.innerHTML = data.content.map(customer => `
+                <tr>
+                    <td>${customer.customerId}</td>
+                    <td>${customer.firstname}</td>
+                    <td>${customer.lastname}</td>
+                    <td>${customer.street}</td>
+                    <td>${customer.address}</td>
+                    <td>${customer.city}</td>
+                    <td>${customer.state}</td>
+                    <td>${customer.email}</td>
+                    <td>${customer.phone}</td>
+                    <td class="actions">
+                        <button class="edit" onclick="populateEditForm(${customer.customerId})">✏️</button>
+                        <button class="delete" onclick="deleteCustomer(${customer.customerId})">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            alert('Failed to fetch customers');
+        }
+    }
+
+    async function populateEditForm(customerId) {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/customer/getCustomer?customerId=${customerId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (response.ok) {
+            const customer = await response.json();
+            document.getElementById('editCustomerId').value = customer.customerId;
+            document.getElementById('editStreet').value = customer.street;
+            document.getElementById('editAddress').value = customer.address;
+            document.getElementById('editCity').value = customer.city;
+            document.getElementById('editState').value = customer.state;
+            document.getElementById('editEmail').value = customer.email;
+            document.getElementById('editPhone').value = customer.phone;
+            document.getElementById('editCustomerForm').style.display = 'block';
+        } else {
+            alert('Failed to fetch customer details');
+        }
+    }
+
+    async function deleteCustomer(customerId) {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/customer/deleteCustomer?customerId=${customerId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (response.ok) {
+            fetchCustomers();
+        } else {
+            alert('Failed to delete customer');
+        }
+    }
+
+    document.getElementById('customerEditForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const customerId = document.getElementById('editCustomerId').value;
+        const street = document.getElementById('editStreet').value;
+        const address = document.getElementById('editAddress').value;
+        const city = document.getElementById('editCity').value;
+        const state = document.getElementById('editState').value;
+        const email = document.getElementById('editEmail').value;
+        const phone = document.getElementById('editPhone').value;
+        const token = localStorage.getItem('token');
+
+        const response = await fetch(`/customer/updateCustomer/{customerId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({street, address, city, state, email, phone })
+        });
+        if (response.ok) {
+            fetchCustomers();
+            document.getElementById('editCustomerForm').style.display = 'none';
+        } else {
+            alert('Failed to update customer');
+        }
+    });
+
+    function logout() {
+        localStorage.removeItem('token');
+        window.location.href = 'log.html';
+    }
+
+    window.onload = function() {
+        fetchCustomers();
+    };
+</script>
+</body>
+</html>
