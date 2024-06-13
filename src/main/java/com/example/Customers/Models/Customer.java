@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @Data
-public class Customer {
+public class Customer {//customer entity and its attributes
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer customerId;
@@ -22,7 +22,7 @@ public class Customer {
     private String address;
     private String city;
     private String state;
-    @Column(unique = true)
+    @Column(unique = true)//this is to put the email column as unique
     private String email;
     private String phone;
 }

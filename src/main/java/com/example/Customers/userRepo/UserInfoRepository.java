@@ -7,7 +7,9 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
+//Repo to save the user info
 public interface UserInfoRepository extends JpaRepository<UserInfo, Integer> {
 
+    //finding user using finfByName method
     Optional<UserInfo> findByName(String username);
 }

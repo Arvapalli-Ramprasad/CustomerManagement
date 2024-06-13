@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+//Customer DTO to update customer only giving access to the attributes given below
 public class UpdateCustomer {
     private String street;
     private String address;
