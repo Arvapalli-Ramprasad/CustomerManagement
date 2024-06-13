@@ -248,13 +248,13 @@
         const phone = document.getElementById('editPhone').value;
         const token = localStorage.getItem('token');
 
-        const response = await fetch(`/customer/updateCustomer/{customerId}`, {
+        const response = await fetch(`/customer/updateCustomer/${customerId}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({street, address, city, state, email, phone })
+            body: JSON.stringify({ street, address, city, state, email, phone })
         });
         if (response.ok) {
             fetchCustomers();
